@@ -1,0 +1,16 @@
+[ExtractDialog]
+2 screens: Height=480
+2 screens: Width=802
+DirHistory[$e]=$HOME/Downloads/fotos/
+
+[General]
+Version=202
+ViewPropsTimestamp=2024,10,18,20,13,15.725
+
+[KFileDialog Settings]
+Places Icons Auto-resize=false
+Places Icons Static Size=22
+
+[MainWindow]
+MenuBar=Disabled
+ToolBarsMovable=Disabled
