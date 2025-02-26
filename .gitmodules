@@ -1,36 +1,36 @@
-[submodule "configs/.config/tmux/plugins/tmux"]
-	path = configs/.config/tmux/plugins/tmux
+[submodule "tmux/.config/tmux/plugins/tmux"]
+	path = tmux/.config/tmux/plugins/tmux
 	url = https://github.com/tmux/tmux.git
-[submodule "configs/.config/tmux/plugins/tmux-fzf"]
-	path = configs/.config/tmux/plugins/tmux-fzf
+[submodule "tmux/.config/tmux/plugins/tmux-fzf"]
+	path = tmux/.config/tmux/plugins/tmux-fzf
 	url = https://git::@github.com/sainnhe/tmux-fzf
-[submodule "configs/.config/tmux/plugins/tmux-continuum"]
-	path = configs/.config/tmux/plugins/tmux-continuum
+[submodule "tmux/.config/tmux/plugins/tmux-continuum"]
+	path = tmux/.config/tmux/plugins/tmux-continuum
 	url = https://git::@github.com/tmux-plugins/tmux-continuum
-[submodule "configs/.config/tmux/plugins/tmux-fzf-url"]
-	path = configs/.config/tmux/plugins/tmux-fzf-url
+[submodule "tmux/.config/tmux/plugins/tmux-fzf-url"]
+	path = tmux/.config/tmux/plugins/tmux-fzf-url
 	url = https://git::@github.com/wfxr/tmux-fzf-url
-[submodule "configs/.config/tmux/plugins/tmux-resurrect"]
-	path = configs/.config/tmux/plugins/tmux-resurrect
+[submodule "tmux/.config/tmux/plugins/tmux-resurrect"]
+	path = tmux/.config/tmux/plugins/tmux-resurrect
 	url = https://git::@github.com/tmux-plugins/tmux-resurrect
-[submodule "configs/.config/tmux/plugins/tmux-sensible"]
-	path = configs/.config/tmux/plugins/tmux-sensible
+[submodule "tmux/.config/tmux/plugins/tmux-sensible"]
+	path = tmux/.config/tmux/plugins/tmux-sensible
 	url = https://git::@github.com/tmux-plugins/tmux-sensible
-[submodule "configs/.config/tmux/plugins/tmux-sessionx"]
-	path = configs/.config/tmux/plugins/tmux-sessionx
+[submodule "tmux/.config/tmux/plugins/tmux-sessionx"]
+	path = tmux/.config/tmux/plugins/tmux-sessionx
 	url = https://git::@github.com/omerxx/tmux-sessionx
-[submodule "configs/.config/tmux/plugins/tmux-thumbs"]
-	path = configs/.config/tmux/plugins/tmux-thumbs
+[submodule "tmux/.config/tmux/plugins/tmux-thumbs"]
+	path = tmux/.config/tmux/plugins/tmux-thumbs
 	url = https://git::@github.com/fcsonline/tmux-thumbs
-[submodule "configs/.config/tmux/plugins/tmux-yank"]
-	path = configs/.config/tmux/plugins/tmux-yank
+[submodule "tmux/.config/tmux/plugins/tmux-yank"]
+	path = tmux/.config/tmux/plugins/tmux-yank
 	url = https://git::@github.com/tmux-plugins/tmux-yank
-[submodule "configs/.config/tmux/plugins/tpm"]
-	path = configs/.config/tmux/plugins/tpm
+[submodule "tmux/.config/tmux/plugins/tpm"]
+	path = tmux/.config/tmux/plugins/tpm
 	url = https://github.com/tmux-plugins/tpm
-[submodule "configs/.config/tmux/plugins/vim-tmux-navigator"]
-	path = configs/.config/tmux/plugins/vim-tmux-navigator
+[submodule "tmux/.config/tmux/plugins/vim-tmux-navigator"]
+	path = tmux/.config/tmux/plugins/vim-tmux-navigator
 	url = https://git::@github.com/christoomey/vim-tmux-navigator
-[submodule "configs/.oh-my-zsh"]
-	path = configs/.oh-my-zsh
+[submodule "oh-my-zsh"]
+	path = oh-my-zsh
 	url = https://github.com/ohmyzsh/ohmyzsh.git
