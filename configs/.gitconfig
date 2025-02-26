@@ -1,5 +1,0 @@
-[user]
-	name = Bruno Genero
-	email = generobruno@gmail.com
-[alias]
-	commit-a = !git add -A && git commit
