@@ -1,8 +1,4 @@
 *.swp
 *.bak
 *.tmp
-configs/.ssh/*
-!configs/.ssh/config 
-!configs/.ssh/*.pub
-!configs/.ssh/known_hosts*
 
