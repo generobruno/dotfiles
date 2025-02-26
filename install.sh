@@ -225,12 +225,11 @@ setup_dotfiles() {
 
 # Set up Git Submodules
 setup_submodules() {
-    print_info "Setting up Git submodules..."
-    git submodule init
-    git submodule update --recursive
-    print_success "Submodules have been set up."
+  print_info "Setting up Git submodules..."
+  git submodule init
+  git submodule update --recursive
+  print_success "Submodules have been set up."
 }
-
 
 # Main execution
 main() {
@@ -238,6 +237,9 @@ main() {
 
   check_requirements
   detect_os
+
+  # Set Up Submodules
+  setup_submodules
 
   # Ask user if they want to install packages
   read -p "Do you want to install packages? (y/n) " -n 1 -r
