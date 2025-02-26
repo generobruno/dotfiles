@@ -1,0 +1,5 @@
+/home/bruno/Code/miniconda3
+/home/bruno/Code/miniconda3/envs/MITx6.86x
+/home/bruno/Code/miniconda3/envs/FWOptimizer
+/home/bruno/Code/miniconda3/envs/Tests
+/home/bruno/Code/miniconda3/envs/py2env

@@ -1,0 +1,26 @@
+2025-02-06 17:49:20 Loading main app package /usr/lib/obsidian/obsidian.asar
+2025-02-06 17:49:21 Checking for update using Github
+2025-02-06 17:49:21 Success.
+2025-02-06 17:49:21 Latest version is 1.8.4
+2025-02-06 17:49:21 Downloading update from https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.4/obsidian-1.8.4.asar.gz
+2025-02-06 17:49:22 Verifying hash & signature. Size= 8123782
+2025-02-06 17:49:22 Saving file
+2025-02-06 17:49:23 Update complete.
+2025-02-06 18:02:07 Loading updated app package /home/bruno/.config/obsidian/obsidian-1.8.4.asar
+2025-02-06 18:02:08 Checking for update using Github
+2025-02-06 18:02:08 Success.
+2025-02-06 18:02:08 Latest version is 1.8.4
+2025-02-06 18:02:08 App is up to date.
+2025-02-06 19:24:04 Checking for update using Github
+2025-02-06 19:24:04 Success.
+2025-02-06 19:24:04 Latest version is 1.8.4
+2025-02-06 19:24:04 App is up to date.
+2025-02-06 20:02:14 Loading updated app package /home/bruno/.config/obsidian/obsidian-1.8.4.asar
+2025-02-06 20:02:14 Checking for update using Github
+2025-02-06 20:02:15 Success.
+2025-02-06 20:02:15 Latest version is 1.8.4
+2025-02-06 20:02:15 App is up to date.
+2025-02-06 21:02:14 Checking for update using Github
+2025-02-06 21:02:14 Success.
+2025-02-06 21:02:14 Latest version is 1.8.4
+2025-02-06 21:02:14 App is up to date.
