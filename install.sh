@@ -223,6 +223,15 @@ setup_dotfiles() {
   print_success "Dotfiles have been set up."
 }
 
+# Set up Git Submodules
+setup_submodules() {
+    print_info "Setting up Git submodules..."
+    git submodule init
+    git submodule update --recursive
+    print_success "Submodules have been set up."
+}
+
+
 # Main execution
 main() {
   print_info "Starting dotfiles installation..."
