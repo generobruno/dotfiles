@@ -1,6 +1,3 @@
-[submodule "tmux/.config/tmux/plugins/tmux"]
-	path = tmux/.config/tmux/plugins/tmux
-	url = https://github.com/tmux/tmux.git
 [submodule "tmux/.config/tmux/plugins/tmux-fzf"]
 	path = tmux/.config/tmux/plugins/tmux-fzf
 	url = https://git::@github.com/sainnhe/tmux-fzf
@@ -33,4 +30,7 @@
 	url = https://git::@github.com/christoomey/vim-tmux-navigator
 [submodule "oh-my-zsh"]
 	path = oh-my-zsh
-	url = https://github.com/ohmyzsh/ohmyzsh.git
+  url = https://github.com/ohmyzsh/ohmyzsh.git
+[submodule "tmux/.config/tmux/plugins/tmux"]
+	path = tmux/.config/tmux/plugins/tmux
+	url = https://github.com/tmux/tmux.git
