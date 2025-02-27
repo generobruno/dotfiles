@@ -1,9 +1,11 @@
 #!/bin/bash
 
-set -e
+# Don't exit on error
+set +e
 
-DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTFILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PACKAGES_DIR="$DOTFILES_DIR/packages"
+FAILED_PACKAGES=()
 
 # Colors for output
 RED='\033[0;31m'
@@ -14,243 +16,325 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_info() {
-  echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 print_success() {
-  echo -e "${GREEN}[SUCCESS]${NC} $1"
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
 }
 
 print_warning() {
-  echo -e "${YELLOW}[WARNING]${NC} $1"
+    echo -e "${YELLOW}[WARNING]${NC} $1"
 }
 
 print_error() {
-  echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1"
 }
 
 # Check for required commands
 check_requirements() {
-  print_info "Checking requirements..."
+    print_info "Checking requirements..."
 
-  if ! command -v git &>/dev/null; then
-    print_error "git is not installed. Please install git first."
-    exit 1
-  fi
+    if ! command -v git &> /dev/null; then
+        print_error "git is not installed. Please install git first."
+        exit 1
+    fi
 
-  if ! command -v stow &>/dev/null; then
-    print_error "GNU Stow is not installed. Installing it now..."
-    install_package stow
-  else
-    print_success "GNU Stow is installed."
-  fi
+    if ! command -v stow &> /dev/null; then
+        print_error "GNU Stow is not installed. Installing it now..."
+        install_package stow
+        if ! command -v stow &> /dev/null; then
+            print_error "Failed to install GNU Stow. Please install it manually."
+            exit 1
+        fi
+    else
+        print_success "GNU Stow is installed."
+    fi
 }
 
 # Detect the operating system
 detect_os() {
-  print_info "Detecting operating system..."
+    print_info "Detecting operating system..."
 
-  if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    OS=$ID
-  elif [ -f /etc/debian_version ]; then
-    OS="debian"
-  elif [ -f /etc/fedora-release ]; then
-    OS="fedora"
-  elif [ -f /etc/arch-release ]; then
-    OS="arch"
-  elif [[ "$OSTYPE" == "darwin"* ]]; then
-    OS="macos"
-  else
-    OS="unknown"
-  fi
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS=$ID
+    elif [ -f /etc/debian_version ]; then
+        OS="debian"
+    elif [ -f /etc/fedora-release ]; then
+        OS="fedora"
+    elif [ -f /etc/arch-release ]; then
+        OS="arch"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        OS="macos"
+    else
+        OS="unknown"
+    fi
 
-  print_success "Detected OS: $OS"
-  return 0
+    print_success "Detected OS: $OS"
+    return 0
+}
+
+# Handle package name mapping between different distributions
+map_package_name() {
+    local pkg_name=$1
+
+    # Map common package name differences
+    case $OS in
+        "arch")
+            case $pkg_name in
+                "python3-pip") echo "python-pip" ;;
+                *) echo "$pkg_name" ;;
+            esac
+            ;;
+        "debian"|"ubuntu")
+            case $pkg_name in
+                "python-pip") echo "python3-pip" ;;
+                *) echo "$pkg_name" ;;
+            esac
+            ;;
+        *)
+            echo "$pkg_name"
+            ;;
+    esac
 }
 
 # Setup AUR helper (yay) for Arch Linux
 setup_aur_helper() {
-  print_info "Setting up AUR helper (yay)..."
+    print_info "Setting up AUR helper (yay)..."
 
-  if command -v yay &>/dev/null; then
-    print_success "yay is already installed."
-    return 0
-  fi
+    if command -v yay &> /dev/null; then
+        print_success "yay is already installed."
+        return 0
+    fi
 
-  # Install dependencies
-  sudo pacman -S --needed --noconfirm git base-devel
+    # Install dependencies
+    sudo pacman -S --needed --noconfirm git base-devel
 
-  # Create temporary directory and clone yay
-  TEMP_DIR=$(mktemp -d)
-  git clone https://aur.archlinux.org/yay.git "$TEMP_DIR/yay"
-  cd "$TEMP_DIR/yay"
+    # Create temporary directory and clone yay
+    TEMP_DIR=$(mktemp -d)
+    git clone https://aur.archlinux.org/yay.git "$TEMP_DIR/yay"
+    cd "$TEMP_DIR/yay"
 
-  # Build and install yay
-  makepkg -si --noconfirm
+    # Build and install yay
+    makepkg -si --noconfirm
 
-  # Clean up
-  cd "$DOTFILES_DIR"
-  rm -rf "$TEMP_DIR"
+    # Clean up
+    cd "$DOTFILES_DIR"
+    rm -rf "$TEMP_DIR"
 
-  if command -v yay &>/dev/null; then
-    print_success "yay has been installed successfully."
-  else
-    print_error "Failed to install yay."
-    exit 1
-  fi
+    if command -v yay &> /dev/null; then
+        print_success "yay has been installed successfully."
+    else
+        print_error "Failed to install yay."
+        FAILED_PACKAGES+=("yay (AUR helper)")
+    fi
 }
 
 # Install a package based on the detected OS
 install_package() {
-  PACKAGE_NAME=$1
-  PACKAGE_TYPE=$2 # Optional: "aur" for AUR packages
+    local original_package=$1
+    local package_type=$2  # Optional: "aur" for AUR packages
+    local mapped_package=$(map_package_name "$original_package")
+    local exit_code=0
 
-  case $OS in
-  "arch")
-    if [ "$PACKAGE_TYPE" = "aur" ]; then
-      # Check if yay is installed
-      if ! command -v yay &>/dev/null; then
-        setup_aur_helper
-      fi
-      yay -S --noconfirm $PACKAGE_NAME
+    case $OS in
+        "arch")
+            if [ "$package_type" = "aur" ]; then
+                # Check if yay is installed
+                if ! command -v yay &> /dev/null; then
+                    setup_aur_helper
+                fi
+                if command -v yay &> /dev/null; then
+                    yay -S --needed --noconfirm "$mapped_package"
+                    exit_code=$?
+                else
+                    print_error "Cannot install AUR package $mapped_package: yay is not installed"
+                    exit_code=1
+                fi
+            else
+                # Try yay first if available (it handles regular packages too)
+                if command -v yay &> /dev/null; then
+                    yay -S --needed --noconfirm "$mapped_package"
+                    exit_code=$?
+                else
+                    sudo pacman -S --needed --noconfirm "$mapped_package"
+                    exit_code=$?
+                fi
+            fi
+            ;;
+        "debian"|"ubuntu")
+            sudo apt-get update
+            sudo apt-get install -y "$mapped_package"
+            exit_code=$?
+            ;;
+        "fedora")
+            sudo dnf install -y "$mapped_package"
+            exit_code=$?
+            ;;
+        "macos")
+            brew install "$mapped_package"
+            exit_code=$?
+            ;;
+        *)
+            print_error "Unsupported OS for package installation: $OS"
+            exit_code=1
+            ;;
+    esac
+
+    if [ $exit_code -ne 0 ]; then
+        FAILED_PACKAGES+=("$original_package")
+        print_error "Failed to install $original_package"
+        return 1
     else
-      sudo pacman -S --needed --noconfirm $PACKAGE_NAME
+        print_success "Successfully installed $original_package"
+        return 0
     fi
-    ;;
-  "debian" | "ubuntu")
-    sudo apt-get update
-    sudo apt-get install -y $PACKAGE_NAME
-    ;;
-  "fedora")
-    sudo dnf install -y $PACKAGE_NAME
-    ;;
-  "macos")
-    brew install $PACKAGE_NAME
-    ;;
-  *)
-    print_error "Unsupported OS for package installation: $OS"
-    return 1
-    ;;
-  esac
-
-  return 0
 }
 
 # Install packages from configuration files
 install_packages() {
-  print_info "Installing packages..."
+    print_info "Installing packages..."
 
-  # Install common packages
-  if [ -f "$PACKAGES_DIR/packages.conf" ]; then
-    print_info "Installing common packages..."
-    while read -r line || [ -n "$line" ]; do
-      # Skip comments and empty lines
-      [[ $line =~ ^#.* ]] || [ -z "$line" ] && continue
+    # Install common packages
+    if [ -f "$PACKAGES_DIR/packages.conf" ]; then
+        print_info "Installing common packages..."
+        while read -r line || [ -n "$line" ]; do
+            # Skip comments and empty lines
+            [[ $line =~ ^#.* ]] || [ -z "$line" ] && continue
 
-      # Parse package type (if specified)
-      if [[ $line == *"#"* ]]; then
-        package=$(echo $line | cut -d '#' -f 1 | xargs)
-        package_type=$(echo $line | cut -d '#' -f 2 | xargs)
-      else
-        package=$line
-        package_type=""
-      fi
+            # Parse package type (if specified)
+            if [[ $line == *"#"* ]]; then
+                package=$(echo $line | cut -d '#' -f 1 | xargs)
+                package_type=$(echo $line | cut -d '#' -f 2 | xargs)
+            else
+                package=$line
+                package_type=""
+            fi
 
-      print_info "Installing $package..."
-      install_package "$package" "$package_type"
-    done <"$PACKAGES_DIR/packages.conf"
-  fi
-
-  # Install OS-specific packages
-  if [ -f "$PACKAGES_DIR/$OS.conf" ]; then
-    print_info "Installing $OS-specific packages..."
-
-    # For Arch Linux, install yay first if arch_aur.conf exists
-    if [ "$OS" = "arch" ] && [ -f "$PACKAGES_DIR/arch_aur.conf" ]; then
-      setup_aur_helper
+            print_info "Installing $package..."
+            install_package "$package" "$package_type"
+        done < "$PACKAGES_DIR/packages.conf"
     fi
 
-    while read -r line || [ -n "$line" ]; do
-      # Skip comments and empty lines
-      [[ $line =~ ^#.* ]] || [ -z "$line" ] && continue
+    # Install OS-specific packages
+    if [ -f "$PACKAGES_DIR/$OS.conf" ]; then
+        print_info "Installing $OS-specific packages..."
 
-      # Parse package type (if specified)
-      if [[ $line == *"#"* ]]; then
-        package=$(echo $line | cut -d '#' -f 1 | xargs)
-        package_type=$(echo $line | cut -d '#' -f 2 | xargs)
-      else
-        package=$line
-        package_type=""
-      fi
+        # For Arch Linux, install yay first if arch_aur.conf exists
+        if [ "$OS" = "arch" ] && [ -f "$PACKAGES_DIR/arch_aur.conf" ]; then
+            setup_aur_helper
+        fi
 
-      print_info "Installing $package..."
-      install_package "$package" "$package_type"
-    done <"$PACKAGES_DIR/$OS.conf"
+        while read -r line || [ -n "$line" ]; do
+            # Skip comments and empty lines
+            [[ $line =~ ^#.* ]] || [ -z "$line" ] && continue
 
-    # Install AUR packages for Arch Linux
-    if [ "$OS" = "arch" ] && [ -f "$PACKAGES_DIR/arch_aur.conf" ]; then
-      print_info "Installing AUR packages..."
-      while read -r package || [ -n "$package" ]; do
-        # Skip comments and empty lines
-        [[ $package =~ ^#.* ]] || [ -z "$package" ] && continue
+            # Parse package type (if specified)
+            if [[ $line == *"#"* ]]; then
+                package=$(echo $line | cut -d '#' -f 1 | xargs)
+                package_type=$(echo $line | cut -d '#' -f 2 | xargs)
+            else
+                package=$line
+                package_type=""
+            fi
 
-        print_info "Installing AUR package: $package..."
-        install_package "$package" "aur"
-      done <"$PACKAGES_DIR/arch_aur.conf"
+            print_info "Installing $package..."
+            install_package "$package" "$package_type"
+        done < "$PACKAGES_DIR/$OS.conf"
+
+        # Install AUR packages for Arch Linux
+        if [ "$OS" = "arch" ] && [ -f "$PACKAGES_DIR/arch_aur.conf" ]; then
+            print_info "Installing AUR packages..."
+            while read -r package || [ -n "$package" ]; do
+                # Skip comments and empty lines
+                [[ $package =~ ^#.* ]] || [ -z "$package" ] && continue
+
+                print_info "Installing AUR package: $package..."
+                install_package "$package" "aur"
+            done < "$PACKAGES_DIR/arch_aur.conf"
+        fi
+    else
+        print_warning "No package configuration found for $OS"
     fi
-  else
-    print_warning "No package configuration found for $OS"
-  fi
 
-  print_success "Package installation completed."
+    if [ ${#FAILED_PACKAGES[@]} -eq 0 ]; then
+        print_success "All packages installed successfully."
+    else
+        print_warning "Package installation completed with some failures."
+    fi
 }
 
 # Create symbolic links using GNU Stow
 setup_dotfiles() {
-  print_info "Setting up dotfiles..."
+    print_info "Setting up dotfiles..."
 
-  # First, backup existing dotfiles if they exist and aren't symlinks
-  for dir in $(find "$DOTFILES_DIR" -mindepth 1 -maxdepth 1 -type d -not -path "*/\.*" -not -path "*/packages"); do
-    stow_pkg=$(basename "$dir")
-    print_info "Setting up $stow_pkg..."
+    # First, backup existing dotfiles if they exist and aren't symlinks
+    for dir in $(find "$DOTFILES_DIR" -mindepth 1 -maxdepth 1 -type d -not -path "*/\.*" -not -path "*/packages"); do
+        stow_pkg=$(basename "$dir")
+        print_info "Setting up $stow_pkg..."
 
-    # Use stow to create symlinks
-    cd "$DOTFILES_DIR"
-    stow -v -t "$HOME" "$stow_pkg"
-  done
+        # Use stow to create symlinks
+        cd "$DOTFILES_DIR"
+        stow -v -t "$HOME" "$stow_pkg"
+        if [ $? -ne 0 ]; then
+            print_error "Failed to stow $stow_pkg"
+        fi
+    done
 
-  print_success "Dotfiles have been set up."
+    print_success "Dotfiles have been set up."
 }
 
-# Set up Git Submodules
+# Setup Git submodules
 setup_submodules() {
-  print_info "Setting up Git submodules..."
-  git submodule init
-  git submodule update --recursive
-  print_success "Submodules have been set up."
+    print_info "Setting up Git submodules..."
+    git submodule init
+    git submodule update --recursive
+    print_success "Submodules have been set up."
+}
+
+# Show summary of installation
+show_summary() {
+    echo
+    print_info "Installation Summary:"
+    print_success "Dotfiles installed to: $HOME"
+    print_success "OS detected: $OS"
+
+    if [ ${#FAILED_PACKAGES[@]} -eq 0 ]; then
+        print_success "All packages were installed successfully."
+    else
+        print_warning "The following packages failed to install:"
+        for pkg in "${FAILED_PACKAGES[@]}"; do
+            echo -e "${YELLOW}  - $pkg${NC}"
+        done
+        echo
+        print_info "You may want to install these packages manually."
+    fi
 }
 
 # Main execution
 main() {
-  print_info "Starting dotfiles installation..."
+    print_info "Starting dotfiles installation..."
 
-  check_requirements
-  detect_os
+    check_requirements
+    detect_os
 
-  # Set Up Submodules
-  setup_submodules
+    # Set up submodules
+    setup_submodules
 
-  # Ask user if they want to install packages
-  read -p "Do you want to install packages? (y/n) " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    install_packages
-  fi
+    # Ask user if they want to install packages
+    read -p "Do you want to install packages? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        install_packages
+    fi
 
-  setup_dotfiles
+    setup_dotfiles
 
-  print_success "Dotfiles installation complete!"
+    # Show summary with any failed packages
+    show_summary
+
+    print_success "Dotfiles installation complete!"
 }
 
 main
