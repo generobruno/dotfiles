@@ -13,6 +13,5 @@ y = 10
 [terminal]
 
 [terminal.shell]
-program = "/usr/bin/zsh"
-args = ["-l", "-c", "tmux"]
-
+program = "/usr/bin/tmux"
+args = ["new-session", "-s", "main"]
