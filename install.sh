@@ -269,20 +269,64 @@ install_packages() {
 setup_dotfiles() {
     print_info "Setting up dotfiles..."
 
-    # First, backup existing dotfiles if they exist and aren't symlinks
-    for dir in $(find "$DOTFILES_DIR" -mindepth 1 -maxdepth 1 -type d -not -path "*/\.*" -not -path "*/packages"); do
-        stow_pkg=$(basename "$dir")
+    # Change to dotfiles directory
+    cd "$DOTFILES_DIR" || {
+        print_error "Cannot access dotfiles directory: $DOTFILES_DIR"
+        return 1
+    }
+
+    # Get list of stow packages (directories excluding hidden ones and packages dir)
+    for dir in $(find . -mindepth 1 -maxdepth 1 -type d -not -path "*/\.*" -not -path "*/packages" | sed 's|^\./||'); do
+        stow_pkg="$dir"
         print_info "Setting up $stow_pkg..."
 
-        # Use stow to create symlinks
-        cd "$DOTFILES_DIR"
-        stow -v -t "$HOME" "$stow_pkg"
-        if [ $? -ne 0 ]; then
+        # Check for conflicts first
+        if stow -n -v -t "$HOME" "$stow_pkg" 2>&1 | grep -q "would cause conflicts"; then
+            print_warning "Conflicts detected for $stow_pkg. Backing up existing files..."
+
+            # Create backup directory if it doesn't exist
+            backup_dir="$HOME/.dotfiles-backup/$(date +%Y%m%d_%H%M%S)"
+            mkdir -p "$backup_dir"
+
+            # Get list of conflicting files and back them up
+            stow -n -v -t "$HOME" "$stow_pkg" 2>&1 | grep "existing target" | while read -r line; do
+                # Extract the target file path from stow output
+                target_file=$(echo "$line" | sed -n 's/.*existing target \(.*\) since.*/\1/p')
+                if [ -n "$target_file" ] && [ -f "$HOME/$target_file" ]; then
+                    # Create directory structure in backup
+                    target_dir=$(dirname "$target_file")
+                    mkdir -p "$backup_dir/$target_dir"
+
+                    # Move the conflicting file to backup
+                    mv "$HOME/$target_file" "$backup_dir/$target_file"
+                    print_info "Backed up $target_file to $backup_dir/$target_file"
+                fi
+            done
+        fi
+
+        # Now stow the package
+        if stow -v -t "$HOME" "$stow_pkg"; then
+            print_success "Successfully stowed $stow_pkg"
+        else
             print_error "Failed to stow $stow_pkg"
+
+            # If stow still fails, try the adopt method as fallback
+            print_warning "Trying adopt method for $stow_pkg..."
+            if stow --adopt -v -t "$HOME" "$stow_pkg"; then
+                print_warning "Used adopt method for $stow_pkg - check git status for changes"
+            else
+                print_error "Complete failure to stow $stow_pkg"
+            fi
         fi
     done
 
-    print_success "Dotfiles have been set up."
+    print_success "Dotfiles setup completed."
+
+    # Show any adopted files that might need review
+    if git status --porcelain | grep -q .; then
+        print_warning "Some files were adopted into your dotfiles repo."
+        print_info "Run 'git status' in $DOTFILES_DIR to review changes."
+    fi
 }
 
 # Setup Git submodules
@@ -316,18 +360,18 @@ show_summary() {
 main() {
     print_info "Starting dotfiles installation..."
 
-    check_requirements
-    detect_os
+    #check_requirements
+    #detect_os
 
     # Set up submodules
-    setup_submodules
+    #setup_submodules
 
     # Ask user if they want to install packages
-    read -p "Do you want to install packages? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        install_packages
-    fi
+    #read -p "Do you want to install packages? (y/n) " -n 1 -r
+    #echo
+    #if [[ $REPLY =~ ^[Yy]$ ]]; then
+    #    install_packages
+    #fi
 
     setup_dotfiles
 
