@@ -88,7 +88,7 @@ source $ZSH/oh-my-zsh.sh
 
 # SSH-Agent plugin settings
 zstyle :omz:plugins:ssh-agent agent-forwarding yes
-zstyle :omz:plugins:ssh-agent quiet yes
+#zstyle :omz:plugins:ssh-agent quiet yes
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -142,4 +142,3 @@ unset __conda_setup
 # Conda Tab completion
 eval "$(register-python-argcomplete conda)"
 
-export SSH_ASKPASS=""
