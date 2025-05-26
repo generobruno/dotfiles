@@ -142,3 +142,40 @@ unset __conda_setup
 # Conda Tab completion
 eval "$(register-python-argcomplete conda)"
 
+# ROS2 Env SetUp
+ros2_on() {
+    # Deactivate Conda if active
+    if [[ -n "$CONDA_PREFIX" ]]; then
+        conda deactivate
+    fi
+
+    export ROS_DOMAIN_ID=42
+    export ROS_VERSION=2
+    export ROS_PYTHON_VERSION=3
+    export ROS_DISTRO=jazzy
+    export QT_QPA_PLATFORM=xcb
+
+    # Misc Envs
+    export TURTLEBOT3_MODEL=waffle
+
+    # Temporarily prepend system paths
+    export PATH="/usr/bin:$PATH"
+    export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+
+    # Source ROS global and workspace
+    source /opt/ros/jazzy/setup.zsh
+    # Specific WorkSpaces
+    source ~/Code/ROS2/ros2_ws/install/setup.zsh
+    source ~/Code/ROS2/arduinobot_ws/install/setup.zsh
+
+    # argcomplete for ros2 & colcon
+    source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.zsh
+    eval "$(register-python-argcomplete ros2)"
+    eval "$(register-python-argcomplete colcon)"
+}
+
+# Only source ROS 2 stuff if inside Distrobox
+if [[ -n "$DISTROBOX_ENTER_PATH" ]]; then
+    # ROS 2 Environment Setup
+    ros2_on
+fi
