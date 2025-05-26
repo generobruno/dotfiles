@@ -87,7 +87,7 @@ source $ZSH/oh-my-zsh.sh
 # User configuration
 
 # SSH-Agent plugin settings
-zstyle :omz:plugins:ssh-agent agent-forwarding yes
+zstyle :omz:plugins:ssh-agent agent-forwarding yes quiet yes
 #zstyle :omz:plugins:ssh-agent quiet yes
 
 # export MANPATH="/usr/local/man:$MANPATH"
@@ -126,14 +126,14 @@ alias lt='eza -a --tree --level=1 --icons'
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/bruno/Code/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+__conda_setup="$('/home/bruno/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
-    if [ -f "/home/bruno/Code/miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/bruno/Code/miniconda3/etc/profile.d/conda.sh"
+    if [ -f "/home/bruno/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/bruno/miniconda3/etc/profile.d/conda.sh"
     else
-        export PATH="/home/bruno/Code/miniconda3/bin:$PATH"
+        export PATH="/home/bruno/miniconda3/bin:$PATH"
     fi
 fi
 unset __conda_setup
