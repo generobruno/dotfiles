@@ -1,3 +1,4 @@
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
 # SSH-Agent plugin settings
 zstyle :omz:plugins:ssh-agent agent-forwarding yes quiet yes
 #zstyle :omz:plugins:ssh-agent quiet yes
@@ -85,6 +86,9 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git ssh-agent zsh-autosuggestions sudo web-search copyfile)
+
+# Export sshaskpass
+export SSH_ASKPASS=/usr/bin/ksshaskpass
 
 source $ZSH/oh-my-zsh.sh
 
