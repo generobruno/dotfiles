@@ -124,6 +124,15 @@ alias ls='eza --icons'
 alias ll='eza -al --icons'
 alias lt='eza -a --tree --level=1 --icons'
 
+# Copy file alias/function
+cpf() {
+    if [ -f "$1" ]; then
+        xclip -sel clip < "$1"
+    else
+        echo "Usage: cpf <filename>"
+    fi
+}
+
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
