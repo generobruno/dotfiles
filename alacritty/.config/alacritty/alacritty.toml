@@ -18,4 +18,4 @@ y = 10
 
 [terminal.shell]
 program = "/usr/bin/tmux"
-args = ["new-session", "-s", "main"]
+args = ["new-session", "-A", "-s", "main"]

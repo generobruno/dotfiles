@@ -1,6 +1,6 @@
 [global_config]
   window_state = normal
-  borderless = True
+  borderless = False
 [keybindings]
 [profiles]
   [[default]]
