@@ -136,7 +136,6 @@ cpf() {
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
 __conda_setup="$('/home/bruno/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
@@ -155,8 +154,29 @@ unset __conda_setup
 # Conda Tab completion
 eval "$(register-python-argcomplete conda)"
 
-# ROS2 Env SetUp
+# ROS2 via Docker
 ros2_on() {
+    xhost +local:docker > /dev/null 2>&1
+    echo "Starting ROS2 Jazzy container..."
+    docker run -it --rm \
+        --name ros2_jazzy \
+        --env DISPLAY=$DISPLAY \
+        --env QT_X11_NO_MITSHM=1 \
+        --env ROS_DOMAIN_ID=42 \
+        --env TURTLEBOT3_MODEL=waffle \
+        --volume /tmp/.X11-unix:/tmp/.X11-unix:rw \
+        --volume $HOME/ros2_ws:/ros2_ws \
+        --network host \
+        ros2_jazzy_dev
+}
+
+# Extra terminal into a running container
+ros2_shell() {
+    docker exec -it ros2_jazzy zsh 2>/dev/null || echo "No running container named ros2_jazzy"
+}
+
+# ROS2 Env SetUp (DISTROBOX)
+ros2_on_distrobox() {
     # Deactivate Conda if active
     if [[ -n "$CONDA_PREFIX" ]]; then
         conda deactivate
@@ -190,5 +210,8 @@ ros2_on() {
 # Only source ROS 2 stuff if inside Distrobox
 if [[ -n "$DISTROBOX_ENTER_PATH" ]]; then
     # ROS 2 Environment Setup
-    ros2_on
+    ros2_on_distrobox
 fi
+
+# Allow docker to open windows
+xhost +local:docker
